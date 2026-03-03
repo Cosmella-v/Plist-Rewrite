@@ -1,0 +1,17 @@
+{
+	"geode": "5.2.0",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "cosmella.texture-repath",
+	"name": "Texture repath",
+	"version": "v1.0.0",
+	"developer": "Cosmella",
+	"description": "Makes loading spreedsheet textures pull from multiple sources",
+	"dependencies": {
+		"geode.node-ids": ">=v1.20.0"
+	}
+}
