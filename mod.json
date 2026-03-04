@@ -6,8 +6,8 @@
 		"mac": "2.2081",
 		"ios": "2.2081"
 	},
-	"id": "cosmella.texture-repath",
-	"name": "Texture repath",
+	"id": "cosmella.plistrewrite",
+	"name": "Plist rewrite",
 	"version": "v1.0.0",
 	"developer": "Cosmella",
 	"description": "Makes loading spreedsheet textures pull from multiple sources",

@@ -29,7 +29,7 @@ class $modify(MyMenuLayer, MenuLayer) {
 		CCFileUtils* fileUtils = CCFileUtils::get();
 		auto searchPaths = fileUtils->getSearchPaths();
 			for (auto it = searchPaths.rbegin(); it != searchPaths.rend(); ++it) {
-				log::debug("hai {}", *it);
+				log::debug("logging search paths {}", *it);
 			};
 	}
 };

@@ -3,19 +3,21 @@
 using namespace geode::prelude;
 
 // geode v4 never dies
-
+// i was also too lazy to rewrite to not use the macros so here they are
 #ifdef CCDICT_FOREACH
 #undef CCDICT_FOREACH
 #endif
 
-#ifdef NO_DECLTYPE
-#define HASH_ITER(hh, head, el, tmp)                                                      \
-	for ((el) = (head), (*(char **)(&(tmp))) = (char *)((head) ? (head)->hh.next : NULL); \
-	     el; (el) = (tmp), (*(char **)(&(tmp))) = (char *)((tmp) ? (tmp)->hh.next : NULL))
-#else
-#define HASH_ITER(hh, head, el, tmp)                                           \
-	for ((el) = (head), (tmp) = DECLTYPE(el)((head) ? (head)->hh.next : NULL); \
-	     el; (el) = (tmp), (tmp) = DECLTYPE(el)((tmp) ? (tmp)->hh.next : NULL))
+#ifndef HASH_ITER
+    #ifdef NO_DECLTYPE
+    #define HASH_ITER(hh, head, el, tmp)                                                      \
+        for ((el) = (head), (*(char **)(&(tmp))) = (char *)((head) ? (head)->hh.next : NULL); \
+            el; (el) = (tmp), (*(char **)(&(tmp))) = (char *)((tmp) ? (tmp)->hh.next : NULL))
+    #else
+    #define HASH_ITER(hh, head, el, tmp)                                           \
+        for ((el) = (head), (tmp) = DECLTYPE(el)((head) ? (head)->hh.next : NULL); \
+            el; (el) = (tmp), (tmp) = DECLTYPE(el)((tmp) ? (tmp)->hh.next : NULL))
+    #endif
 #endif
 
 #define CCDICT_FOREACH(__dict__, __el__)          \
@@ -30,6 +32,7 @@ using namespace geode::prelude;
 #define CCARRAY_FOREACH(arr, elem)                    \
 	for (size_t __i = 0; __i < (arr)->count(); ++__i) \
 		if (auto elem = (arr)->objectAtIndex(__i))
+//
 
 namespace inlined {
 /****************************************************************************
@@ -209,11 +212,15 @@ std::string getPlistForQuality(const char *pszPlist, cocos2d::TextureQuality qua
 
 // My hook //
 class $modify(RewritenSpriteFrames, CCSpriteFrameCache) {
-
+      static void onModify(auto& self) {
+        if (!self.setHookPriorityPre("CCSpriteFrameCache::addSpriteFramesWithFile", Priority::Last)) {
+            log::warn("Failed to set CCSpriteFrameCache::addSpriteFramesWithFile hook priority, texture loader might break!");
+        }
+    }
 	void addSpriteFramesWithFile(const char *pszPlist) {
 
 		CCFileUtils *fileUtils = CCFileUtils::sharedFileUtils();
-		if (fileUtils->isAbsolutePath(pszPlist)) {
+		if (fileUtils->isAbsolutePath(pszPlist)) { // UHH THIS IS REALLY BAD TO CHANGE BECAUSE LIKE EVIL
 			return CCSpriteFrameCache::addSpriteFramesWithFile(pszPlist);
 		}
 		std::string pszPlistStr = getPlistForQuality(pszPlist, CCDirector::get()->getLoadedTextureQuality());
@@ -222,7 +229,7 @@ class $modify(RewritenSpriteFrames, CCSpriteFrameCache) {
 			m_pLoadedFileNames->insert(pszPlist);
 			auto searchPaths = fileUtils->getSearchPaths();
 			for (auto it = searchPaths.begin(); it != searchPaths.end(); ++it) {
-				std::string fullPlist = ([](const std::string &d, const char *f) {
+				std::string fullPlist = ([](const std::string &d, const char *f) { // can someone please test like platforrms
 					std::string dir = d, file = f;
 					std::replace(dir.begin(), dir.end(), '\\', '/');
 					std::replace(file.begin(), file.end(), '\\', '/');
@@ -244,7 +251,7 @@ class $modify(RewritenSpriteFrames, CCSpriteFrameCache) {
 
 				cocos2d::CCDictionary *metadataDict = (CCDictionary *)dict->objectForKey("metadata");
 				if (metadataDict) {
-					texturePath = ([](const std::string &d, const char *f) {
+					texturePath = ([](const std::string &d, const char *f) { // repeated evilness
 						std::string dir = d, file = f;
 						std::replace(dir.begin(), dir.end(), '\\', '/');
 						std::replace(file.begin(), file.end(), '\\', '/');
